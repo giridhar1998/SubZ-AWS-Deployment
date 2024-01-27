@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.27.0 (b0ed6a2c9)
+  labels:
+    io.kompose.service: products
+  name: products
+  namespace: ecommerce
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: products
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.27.0 (b0ed6a2c9)
+      labels:
+        io.kompose.service: products
+    spec:
+      containers:
+        - image: products:ecommerce
+          name: ms-products
+          ports:
+            - containerPort: 8003
+          resources: {}
+          volumeMounts:
+            - mountPath: /usr/src/app/uploads
+              name: uploads
+          env:
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce
+                  key: MONGO_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce
+                  key: JWT_SECRET
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce
+                  key: RABBITMQ_URL
+      restartPolicy: Always
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: uploads
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.27.0 (b0ed6a2c9)
+  labels:
+    io.kompose.service: products
+  name: products
+  namespace: ecommerce
+spec:
+  ports:
+    - port: 8003
+      targetPort: 8003
+  selector:
+    io.kompose.service: products
+status:
+  loadBalancer: {}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  labels:
+    io.kompose.service: uploads
+  name: uploads
+  namespace: ecommerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+status: {}

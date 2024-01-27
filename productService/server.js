@@ -4,6 +4,7 @@ import colors from 'colors'
 import morgan from 'morgan'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import connectDB from './config/db.js'
+import cors from 'cors'
 
 import productRoutes from './routes/productRoutes.js'
 
@@ -13,19 +14,24 @@ connectDB()
 
 const app = express()
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'))
-}
-
 app.use(cors())
 app.use(express.json())
 
+app.use(morgan('combined'))
+
 app.use('/api/products', productRoutes)
+
+const __dirname = path.resolve();
+
+const cacheTime = 8640000 * 30;
+
+app.use('/api/products/upload', uploadRoutes);
+app.use('/api/products/uploads', express.static(path.join(__dirname, '/uploads'), { maxAge: cacheTime }));
 
 app.use(notFound)
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3002
+const PORT = process.env.PORT || 8003
 
 app.listen(
   PORT,

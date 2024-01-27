@@ -4,6 +4,7 @@ import colors from 'colors'
 import morgan from 'morgan'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js'
 import connectDB from './config/db.js'
+import cors from 'cors'
 
 import orderRoutes from './routes/orderRoutes.js'
 
@@ -14,19 +15,18 @@ connectDB()
 
 const app = express()
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'))
-}
 
 app.use(cors())
 app.use(express.json())
+
+app.use(morgan('combined'))
 
 app.use('/api/orders', orderRoutes)
 
 app.use(notFound)
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 8004
 
 app.listen(
   PORT,
